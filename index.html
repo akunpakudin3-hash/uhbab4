@@ -50,6 +50,7 @@
 
     <script type="text/babel">
         // --- KONFIGURASI DATABASE ---
+        const EXAM_TOKEN = "JEJAK24"; 
         const SUPABASE_URL = "https://qikeneczlyvbjprnhxyl.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpa2VuZWN6bHl2Ympwcm5oeHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MDM1MTYsImV4cCI6MjA4NjE3OTUxNn0.qRdHiFNMOnxYDOLz9Q-CsistIrYn0GT7HXX4FNkD1d4"; 
         
@@ -59,6 +60,30 @@
         } catch (e) { console.error("Supabase Error:", e); }
 
         const { useState, useEffect, useRef } = React;
+
+        // --- TOKEN SYSTEM ---
+        const generateTimeToken = () => {
+            const now = new Date();
+            const timeBlock = Math.floor(now.getTime() / (5 * 60 * 1000));
+            let hash = timeBlock;
+            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+            hash = (hash >> 16) ^ hash;
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
+            let token = "";
+            let num = Math.abs(hash);
+            for(let i=0; i<5; i++) {
+                token += chars[num % chars.length];
+                num = Math.floor(num / chars.length);
+            }
+            return token;
+        };
+
+        const getTokenTimeRemaining = () => {
+            const now = new Date();
+            const nextBlock = Math.ceil(now.getTime() / (5 * 60 * 1000)) * (5 * 60 * 1000);
+            return Math.floor((nextBlock - now.getTime()) / 1000);
+        };
 
         // --- ICONS ---
         const Icon = ({ path, className }) => (
@@ -78,157 +103,221 @@
             LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
             Download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
             Eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+            Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
             Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
         };
 
         // --- BANK SOAL HOTS (JEJAK DIGITAL) ---
         const INITIAL_QUESTIONS = [
-            // --- A. PILIHAN GANDA ---
+            // --- A. PILIHAN GANDA (10 Soal Studi Kasus) ---
             { 
                 id: 1, category: 'mc', type: 'choice', 
-                question: "Studi Kasus: Dina memposting status kasar di media sosial karena kesal, lalu menghapusnya 15 menit kemudian. Namun, tangkapan layar status itu tetap menyebar. Berdasarkan sifat jejak digital, mengapa tindakan penghapusan 'Delete' tidak efektif?", 
+                question: "Studi Kasus: Dina adalah siswa berprestasi yang mencalonkan diri sebagai ketua OSIS. Namun, ia kalah tipis dari pesaingnya. Dalam keadaan emosi yang tidak stabil, Dina memposting status di media sosial pribadinya yang berisi kata-kata kasar, sindiran, dan tuduhan tidak berdasar terhadap pemenang. Lima belas menit kemudian, setelah ditenangkan oleh sahabatnya, Dina menyadari kesalahannya dan segera menghapus postingan tersebut. Ia merasa lega karena postingan sudah hilang dari timeline-nya.\n\nBerdasarkan pemahaman tentang sifat jejak digital, mengapa tindakan penghapusan 'Delete' yang dilakukan Dina tidak menjamin reputasinya aman sepenuhnya?", 
                 options: [
-                    "Server media sosial selalu error saat menghapus.", 
-                    "Jejak digital bersifat persisten; konten bisa disalin (screenshot) atau diarsipkan server sebelum dihapus.", 
-                    "Internet memiliki memori tak terbatas.", 
-                    "Dina menggunakan akun asli, bukan anonim."
+                    "Karena server media sosial selalu mengalami error saat menghapus data pengguna.", 
+                    "Karena dalam waktu 15 menit, konten tersebut mungkin sudah di-screenshot (tangkapan layar) oleh orang lain atau tersimpan di arsip server (mirroring).", 
+                    "Karena internet memiliki memori tak terbatas yang tidak bisa diakses manusia.", 
+                    "Karena Dina menggunakan akun asli, sehingga penghapusan tidak berlaku."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 2, category: 'mc', type: 'choice', 
-                question: "Situasi: Budi mengunggah foto 'Boarding Pass' ke Instagram Story dengan menutupi nama penumpangnya. Temannya memperingatkan bahwa itu tetap berbahaya. Analisislah risiko keamanan yang tersisa!", 
+                question: "Situasi: Budi sangat senang akan pergi berlibur ke luar negeri untuk pertama kalinya. Saking antusiasnya, sesampainya di bandara, ia memotret tiket pesawat (Boarding Pass) miliknya. Ia merasa sudah berhati-hati dengan menutupi nama lengkapnya menggunakan stiker di fitur Instagram Story sebelum mengunggahnya. Namun, teman sekelasnya yang ahli informatika memperingatkan bahwa tindakan itu masih sangat berbahaya.\n\nAnalisis: Di bagian manakah letak risiko keamanan utama pada foto tiket Budi yang sering diabaikan orang awam?", 
                 options: [
-                    "Orang tahu rumah Budi kosong.", 
-                    "Kode Barcode/QR pada tiket masih terlihat dan dapat dipindai untuk mencuri data sensitif (NIK).", 
-                    "Stiker penutup bisa hilang.", 
-                    "Maskapai akan membatalkan tiket otomatis."
+                    "Orang jahat bisa mengetahui bahwa rumah Budi sedang kosong dan berniat mencuri.", 
+                    "Kode Barcode/QR pada tiket masih terlihat jelas; kode ini menyimpan data sensitif (seperti NIK, PNR) yang bisa dipindai ulang oleh orang lain.", 
+                    "Stiker di Instagram bisa hilang jika koneksi internet lambat.", 
+                    "Maskapai penerbangan akan membatalkan tiket secara otomatis jika mendeteksi tiket tersebut diunggah ke media sosial."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 3, category: 'mc', type: 'choice', 
-                question: "Fenomena: Setelah mencari 'Laptop Gaming' di Google, media sosial seorang siswa dipenuhi iklan laptop. Mekanisme jejak digital apa yang bekerja?", 
+                question: "Fenomena: Seorang siswa sedang mengerjakan tugas sekolah tentang spesifikasi komputer. Ia mencari kata kunci 'Laptop Gaming Terbaik' di mesin pencari Google. Ia hanya membuka beberapa situs ulasan teknologi. Keesokan harinya, saat ia membuka media sosial (Instagram/Facebook), beranda miliknya tiba-tiba dipenuhi oleh iklan promo laptop dari berbagai toko online.\n\nKonsep Informatika: Mekanisme jejak digital apa yang bekerja di latar belakang sehingga fenomena ini bisa terjadi?", 
                 options: [
-                    "Jejak Digital Aktif.", 
-                    "Jejak Digital Pasif (Cookies & Algoritma Pelacakan).", 
-                    "Penyadapan Ilegal.", 
-                    "Kebetulan Semata."
+                    "Jejak Digital Aktif: Siswa tersebut sengaja meminta dikirimi iklan.", 
+                    "Jejak Digital Pasif: Sistem menggunakan 'Cookies' dan algoritma pelacakan lintas situs untuk merekam minat pengguna dan menargetkan iklan (Targeted Ads).", 
+                    "Penyadapan Ilegal: Pemilik toko laptop meretas kamera HP siswa tersebut.", 
+                    "Kebetulan Semata: Karena laptop memang barang yang sedang populer."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 4, category: 'mc', type: 'choice', 
-                question: "Analisis: Kamu menerima pesan WA berisi link: 'http://internet-kemdikbud-gratis.xyz'. Langkah nalar kritis pertama untuk verifikasi?", 
+                question: "Analisis Keamanan: Kamu menerima pesan berantai (broadcast) di grup WhatsApp kelas yang berbunyi: 'KABAR GEMBIRA! Kemdikbud membagikan kuota internet gratis 100GB untuk belajar. Segera klaim sebelum habis di tautan ini: http://internet-kemdikbud-gratis.xyz'.\n\nSebagai siswa yang memiliki literasi digital baik, langkah nalar kritis pertama apa yang harus kamu lakukan untuk memverifikasi kebenaran pesan tersebut?", 
                 options: [
-                    "Langsung klik.", 
-                    "Forward ke grup.", 
-                    "Analisis domain URL (bukan .go.id berarti mencurigakan).", 
-                    "Tanya pengirim."
+                    "Segera mengklik tautan tersebut karena takut kuotanya kehabisan.", 
+                    "Meneruskan (forward) pesan ke grup keluarga agar semua orang tahu.", 
+                    "Menganalisis nama domain URL-nya. Instansi pemerintah resmi selalu menggunakan domain '.go.id', bukan '.xyz' atau blogspot.", 
+                    "Membalas pesan pengirim dan menanyakan apakah dia sudah mendapatkannya."
                 ], 
                 correctAnswer: 2 
             },
             { 
                 id: 5, category: 'mc', type: 'choice', 
-                question: "Miskonsepsi: Apa batasan keamanan 'Incognito Mode' yang sering disalahpahami pengguna?", 
+                question: "Miskonsepsi: Andi pergi ke warnet untuk mengerjakan tugas. Ia login ke akun email-nya menggunakan browser dalam mode 'Incognito' (Penyamaran) atau 'Private Window'. Andi merasa sangat aman dan yakin bahwa aktivitasnya tidak bisa dilacak oleh siapapun.\n\nFakta Teknis: Manakah pernyataan yang BENAR mengenai batasan keamanan mode Incognito yang sering disalahpahami?", 
                 options: [
-                    "Incognito hanya mencegah browser menyimpan history lokal, tapi ISP/Admin tetap bisa melihat aktivitas.", 
-                    "Merekam password diam-diam.", 
-                    "Memperlambat internet.", 
-                    "Menghapus akun otomatis."
+                    "Incognito hanya mencegah browser menyimpan riwayat (history) dan cookies di komputer lokal, namun Admin Jaringan (ISP) tetap bisa melihat lalu lintas data.", 
+                    "Incognito mode sebenarnya merekam password pengguna secara diam-diam untuk dijual.", 
+                    "Incognito mode membuat koneksi internet menjadi sangat lambat karena enkripsi berlebihan.", 
+                    "Incognito mode akan menghapus akun email secara otomatis setelah jendela ditutup."
                 ], 
                 correctAnswer: 0 
             },
             { 
                 id: 6, category: 'mc', type: 'choice', 
-                question: "Isu Sosial: Apa risiko jangka panjang terbesar dari 'Sharenting' (Orang tua oversharing foto anak) bagi anak?", 
+                question: "Isu Sosial: Bu Ani adalah ibu muda yang sangat bangga dengan anaknya. Setiap hari, ia mengunggah foto dan video anaknya ke media sosial, mulai dari momen bangun tidur, lokasi sekolah, hingga sertifikat prestasi lengkap dengan tanggal lahir. Fenomena ini disebut 'Sharenting'.\n\nEvaluasi Risiko: Apa bahaya terbesar jangka panjang dari perilaku Sharenting ini terhadap 'Identitas Digital' sang anak di masa depan?", 
                 options: [
-                    "Memori penuh.", 
-                    "Hilangnya hak privasi anak & risiko penyalahgunaan data (profiling).", 
-                    "Anak jadi artis.", 
-                    "Kehilangan hak asuh."
+                    "Anak akan kehabisan memori penyimpanan di otaknya karena terlalu banyak difoto.", 
+                    "Anak kehilangan hak privasi atas dirinya sendiri dan data-data tersebut (lokasi, tanggal lahir) menjadi 'makanan empuk' bagi pelaku kejahatan siber (profiling).", 
+                    "Anak akan otomatis menjadi artis terkenal tanpa usaha.", 
+                    "Orang tua akan kehilangan hak asuh anak secara hukum."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 7, category: 'mc', type: 'choice', 
-                question: "Dunia Kerja: Pelamar kerja ditolak perusahaan karena jejak digital, padahal nilai akademiknya bagus. Faktor penyebab paling mungkin?", 
+                question: "Dunia Kerja: Sebuah perusahaan teknologi besar sedang merekrut pegawai baru. Ada satu kandidat dengan IPK 4.0 dan lulusan universitas ternama. Wawancaranya berjalan lancar. Namun, di tahap akhir, perusahaan memutuskan untuk MENOLAK kandidat tersebut setelah tim HRD melakukan pemeriksaan latar belakang digital.\n\nPrediksi: Faktor jejak digital apa yang paling mungkin menyebabkan penolakan tersebut?", 
                 options: [
-                    "Jarang update status.", 
-                    "Followers sedikit.", 
-                    "Ditemukan ujaran kebencian atau perilaku tidak etis di postingan masa lalu.", 
-                    "Pakai nama asli."
+                    "Kandidat tersebut jarang memposting foto liburan di Instagram.", 
+                    "Jumlah followers kandidat tersebut terlalu sedikit.", 
+                    "Ditemukan komentar-komentar lama kandidat yang berisi ujaran kebencian (hate speech), rasisme, atau perilaku tidak etis di forum publik.", 
+                    "Kandidat menggunakan nama asli di akun media sosialnya."
                 ], 
                 correctAnswer: 2 
             },
             { 
                 id: 8, category: 'mc', type: 'choice', 
-                question: "Strategi: Langkah paling efektif untuk membangun reputasi digital positif adalah...", 
+                question: "Manajemen Diri: Rara ingin mendaftar beasiswa ke luar negeri tahun depan. Ia sadar bahwa panitia seleksi mungkin akan melihat jejak digitalnya. Rara ingin mengubah citra digitalnya menjadi lebih positif.\n\nStrategi: Manakah langkah paling efektif dan produktif yang bisa dilakukan Rara?", 
                 options: [
-                    "Buat akun palsu memuji diri.", 
-                    "Aktif mengunggah karya, prestasi, atau konten edukatif.", 
-                    "Kunci akun selamanya.", 
-                    "Hapus semua jejak."
+                    "Membuat banyak akun palsu untuk memberikan komentar pujian di akun aslinya.", 
+                    "Mulai aktif mengunggah konten karya, prestasi, hobi yang positif, atau berbagi ilmu (konten edukatif) di media sosialnya.", 
+                    "Mengunci semua akun media sosial (Private) dan tidak pernah berinteraksi dengan siapapun.", 
+                    "Menghapus semua jejak digital masa lalu dan membiarkan akunnya kosong melompong."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 9, category: 'mc', type: 'choice', 
-                question: "Konsep: Perbedaan utama Jejak Digital Aktif vs Pasif?", 
+                question: "Konsep Dasar: Dalam literasi digital, kita mengenal istilah 'Jejak Digital Aktif' dan 'Jejak Digital Pasif'. Perbedaan mendasar di antara keduanya terletak pada...", 
                 options: [
-                    "Waktu kejadian.", 
-                    "Intensi (Kesadaran): Aktif dilakukan sadar, Pasif direkam sistem otomatis.", 
-                    "Bisa dihapus vs Tidak.", 
-                    "Teks vs Gambar."
+                    "Waktu kejadian data tersebut dibuat (Siang vs Malam).", 
+                    "Tingkat kesadaran (Intensi) pengguna: Aktif dilakukan dengan sadar (posting/komen), Pasif direkam sistem tanpa sadar (IP Address/Lokasi).", 
+                    "Kemungkinan data tersebut dihapus (Aktif bisa dihapus, Pasif permanen).", 
+                    "Jenis kontennya (Aktif berupa teks, Pasif berupa gambar)."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 10, category: 'mc', type: 'choice', 
-                question: "Keamanan: Mengapa tanggal lahir dilarang digunakan sebagai PIN/Password?", 
+                question: "Social Engineering: Banyak orang menggunakan tanggal lahir (misal: 170890) sebagai PIN ATM atau Password karena mudah diingat. Namun, pakar keamanan siber sangat melarang hal ini.\n\nAlasan Logis: Mengapa menggunakan tanggal lahir sebagai sandi dianggap sebagai celah keamanan yang fatal?", 
                 options: [
-                    "Data publik mudah ditebak (Social Engineering).", 
-                    "Angka sial.", 
-                    "Komputer sulit baca.", 
-                    "Terlalu pendek."
+                    "Karena tanggal lahir adalah data publik yang sangat mudah ditemukan di profil media sosial, sehingga peretas bisa menebaknya dengan mudah.", 
+                    "Karena angka tanggal lahir membawa energi negatif pada sistem komputer.", 
+                    "Karena sistem komputer modern tidak bisa memproses angka tanggal.", 
+                    "Karena tanggal lahir terlalu pendek jumlah digitnya."
                 ], 
                 correctAnswer: 0 
             },
-            
-            // --- B. BENAR / SALAH ---
-            { id: 13, category: 'bs', type: 'choice', question: "(B/S) Menggunakan VPN Gratis menjamin 100% data aman dari penyedia VPN itu sendiri.", options: ["Benar", "Salah (Penyedia bisa catat log)"], correctAnswer: 1 },
-            { id: 14, category: 'bs', type: 'choice', question: "(B/S) Server web mencatat alamat IP perangkat saat berkunjung adalah contoh Jejak Digital Pasif.", options: ["Benar", "Salah"], correctAnswer: 0 },
+
+            // --- B. BENAR / SALAH (2 Soal) ---
+            { 
+                id: 13, category: 'bs', type: 'choice', 
+                question: "Pernyataan: 'Menggunakan VPN (Virtual Private Network) gratisan menjamin 100% data kita aman dan tidak akan ada yang bisa melihat aktivitas kita, termasuk penyedia VPN itu sendiri.'\n\nApakah pernyataan ini Benar atau Salah?", 
+                options: ["Benar", "Salah (Penyedia VPN bisa melihat log aktivitas kita, terutama VPN gratis)"], 
+                correctAnswer: 1 
+            },
+            { 
+                id: 14, category: 'bs', type: 'choice', 
+                question: "Pernyataan: 'Jejak digital pasif tercipta tanpa interaksi langsung atau kesadaran penuh pengguna, contohnya server web yang mencatat alamat IP perangkat yang berkunjung.'\n\nApakah pernyataan ini Benar atau Salah?", 
+                options: ["Benar", "Salah"], 
+                correctAnswer: 0 
+            },
 
             // --- C. MENJODOHKAN (4 Pasang) ---
             { 
-                id: 15, category: 'match', type: 'complex_match', question: "Pasangkan jenis Ancaman Siber:", 
-                pairs: [{ left: "Phishing", right: "Link Palsu" }, { left: "Doxing", right: "Sebar Data Pribadi" }, { left: "Sniffing", right: "Penyadapan Data" }, { left: "Defacing", right: "Peretasan Web" }] 
+                id: 15, category: 'match', type: 'complex_match', question: "Pasangkan jenis Ancaman Siber berikut dengan definisi atau skenarionya yang tepat:", 
+                pairs: [
+                    { left: "Phishing", right: "Memancing korban klik link palsu" },
+                    { left: "Doxing", right: "Menyebarkan alamat rumah/data pribadi" },
+                    { left: "Sniffing", right: "Menyadap data di WiFi publik" },
+                    { left: "Defacing", right: "Mengubah tampilan halaman web" }
+                ] 
             },
             { 
-                id: 16, category: 'match', type: 'complex_match', question: "Jodohkan aktivitas jejak digital:", 
-                pairs: [{ left: "Jejak Aktif", right: "Posting Status" }, { left: "Jejak Pasif", right: "History Browser" }, { left: "Metadata", right: "Lokasi Foto" }, { left: "Cookies", right: "Simpan Login" }] 
+                id: 16, category: 'match', type: 'complex_match', question: "Klasifikasikan aktivitas berikut ke dalam jenis jejak digital yang sesuai:", 
+                pairs: [
+                    { left: "Jejak Aktif", right: "Memposting foto di Instagram" },
+                    { left: "Jejak Pasif", right: "Google Maps merekam rute" },
+                    { left: "Metadata", right: "Info jenis kamera pada file foto" },
+                    { left: "Cookies", right: "Website mengingat keranjang belanja" }
+                ] 
             },
             { 
-                id: 17, category: 'match', type: 'complex_match', question: "Pasangkan fitur keamanan:", 
-                pairs: [{ left: "2FA", right: "Kode OTP" }, { left: "Password Manager", right: "Simpan Sandi Rumit" }, { left: "Incognito", right: "Tanpa History Lokal" }, { left: "VPN", right: "Samarkan IP" }] 
+                id: 17, category: 'match', type: 'complex_match', question: "Jodohkan fitur keamanan digital dengan fungsi utamanya:", 
+                pairs: [
+                    { left: "2FA (Two-Factor)", right: "Kode OTP dikirim ke HP" },
+                    { left: "Password Manager", right: "Menyimpan banyak sandi rumit" },
+                    { left: "Incognito", right: "Tidak menyimpan riwayat lokal" },
+                    { left: "VPN", right: "Menyembunyikan lokasi (IP)" }
+                ] 
             },
             { 
-                id: 18, category: 'match', type: 'complex_match', question: "Jodohkan istilah Etika Digital:", 
-                pairs: [{ left: "Cyberbullying", right: "Perundungan" }, { left: "Plagiarisme", right: "Curi Karya" }, { left: "Hate Speech", right: "Ujaran Kebencian" }, { left: "Hoaks", right: "Berita Bohong" }] 
+                id: 18, category: 'match', type: 'complex_match', question: "Pasangkan istilah pelanggaran Etika Digital berikut:", 
+                pairs: [
+                    { left: "Cyberbullying", right: "Perundungan/Ejekan online" },
+                    { left: "Plagiarisme", right: "Copy-paste tugas tanpa sumber" },
+                    { left: "Hate Speech", right: "Provokasi kebencian SARA" },
+                    { left: "Hoaks", right: "Berita bohong yang meresahkan" }
+                ] 
             },
             { 
-                id: 19, category: 'match', type: 'complex_match', question: "Pasangkan Risiko File:", 
-                pairs: [{ left: ".exe", right: "Sangat Berisiko" }, { left: ".jpg", right: "Risiko Rendah" }, { left: ".pdf", right: "Risiko Sedang" }, { left: ".zip", right: "Perlu Scan" }] 
+                id: 19, category: 'match', type: 'complex_match', question: "Kenali risiko file berdasarkan ekstensinya:", 
+                pairs: [
+                    { left: "Sangat Berisiko", right: "File .exe atau .apk (Aplikasi)" },
+                    { left: "Risiko Rendah", right: "File .jpg atau .png (Gambar)" },
+                    { left: "Risiko Sedang", right: "File .pdf atau .docx (Dokumen)" },
+                    { left: "Perlu Scan", right: "File .zip atau .rar (Arsip)" }
+                ] 
             },
 
-            // --- D. URAIAN / ESSAY ---
-            { id: 28, category: 'essay', type: 'essay', question: "Studi Kasus: Universitas menolak calon mahasiswa berprestasi karena jejak digital rasis di masa lalu. Analisislah mengapa 'Rekam Jejak Digital' kini dianggap sepenting prestasi akademik!", keywords: ["karakter", "reputasi", "integritas", "etika", "citra"], minKeywords: 2 },
-            { id: 29, category: 'essay', type: 'essay', question: "Analisis Privasi: Fitur 'Live Location' berguna untuk keamanan tapi melacak pola hidup. Jelaskan dilema 'Kenyamanan vs Privasi' ini dan cara bijak menggunakannya!", keywords: ["izin akses", "hanya saat digunakan", "matikan", "kesadaran"], minKeywords: 2 },
-            { id: 30, category: 'essay', type: 'essay', question: "Problem Solving: Kamu menemukan akun palsu (impersonation) menggunakan namamu untuk menipu. Rumuskan 3 langkah darurat yang efektif!", keywords: ["lapor", "report", "blokir", "klarifikasi", "screenshot"], minKeywords: 3 },
-            { id: 31, category: 'essay', type: 'essay', question: "Evaluasi: Bantahlah argumen 'Saya tidak punya rahasia jadi tidak takut diawasi' dengan menjelaskan bahaya 'Profiling Data' dari jejak pasif!", keywords: ["manipulasi", "target iklan", "pencurian identitas", "prediksi"], minKeywords: 2 },
-            { id: 32, category: 'essay', type: 'essay', question: "Analisis Hukum: Mengapa komentar penghinaan fisik 'iseng' bisa dipidana UU ITE? Jelaskan unsur yang dilanggar!", keywords: ["pencemaran", "ujaran kebencian", "sara", "pidana"], minKeywords: 2 },
-            { id: 33, category: 'essay', type: 'essay', question: "Keamanan Siber: Mengapa menggunakan tanggal lahir sebagai Password disebut 'Dosa Besar'? Hubungkan dengan Social Engineering!", keywords: ["data publik", "mudah ditebak", "lemah", "brute force"], minKeywords: 2 },
-            { id: 34, category: 'essay', type: 'essay', question: "Konsep Baru: Apa itu 'Digital Legacy' dan mengapa kita perlu mengatur akun kita jika kita meninggal dunia?", keywords: ["data pasca mati", "penyalahgunaan", "ahli waris", "memorialization"], minKeywords: 2 }
+            // --- D. URAIAN / ESSAY (7 Soal HOTS) ---
+            { 
+                id: 28, category: 'essay', type: 'essay', 
+                question: "Studi Kasus Universitas: Saat ini, banyak universitas ternama di dunia mulai mengecek media sosial calon mahasiswanya sebagai bagian dari seleksi. Analisislah mengapa nilai akademik (raport) saja tidak cukup bagi universitas, dan apa yang sebenarnya mereka cari dari jejak digital pelamar?", 
+                keywords: ["karakter", "reputasi", "integritas", "perilaku", "etika", "nilai moral"], minKeywords: 2 
+            },
+            { 
+                id: 29, category: 'essay', type: 'essay', 
+                question: "Analisis Privasi: Fitur GPS pada aplikasi transportasi online (Ojol) sangat penting agar pengemudi bisa menjemput kita dengan akurat. Namun, di sisi lain, ini berarti aplikasi tersebut melacak ke mana saja kita pergi setiap hari. Jelaskan dilema 'Kenyamanan vs Privasi' ini, dan bagaimana cara bijak menggunakannya!", 
+                keywords: ["mudah", "lacak", "privasi", "data lokasi", "izin akses", "kesadaran"], minKeywords: 2 
+            },
+            { 
+                id: 30, category: 'essay', type: 'essay', 
+                question: "Simulasi Insiden: Tiba-tiba ada temanmu yang melapor bahwa ada akun Instagram baru yang menggunakan foto profil dan nama kamu (Impersonation). Akun tersebut mengirim pesan DM ke banyak orang meminjam uang. Tuliskan 3 langkah darurat dan sistematis yang akan kamu lakukan untuk menangani situasi ini!", 
+                keywords: ["lapor", "report akun", "blokir", "klarifikasi", "status wa", "screenshot"], minKeywords: 3 
+            },
+            { 
+                id: 31, category: 'essay', type: 'essay', 
+                question: "Argumentasi: Ada pendapat yang mengatakan: 'Jejak digital pasif (seperti riwayat pencarian) lebih berbahaya daripada jejak aktif karena pengguna tidak sadar data itu dikumpulkan.' Apakah kamu setuju? Jelaskan argumenmu mengenai bahaya 'Profiling' data!", 
+                keywords: ["setuju", "tanpa sadar", "profiling", "iklan", "manipulasi", "prediksi"], minKeywords: 2 
+            },
+            { 
+                id: 32, category: 'essay', type: 'essay', 
+                question: "Proyek Kreatif: Buatlah sebuah kalimat slogan (tagline) kampanye singkat yang mengajak remaja untuk berpikir sebelum memposting ('Think Before You Post'), lalu jelaskan makna filosofis di balik slogan buatanmu itu!", 
+                keywords: ["pikir", "masa depan", "bijak", "saring", "jejak", "reputasi"], minKeywords: 2 
+            },
+            { 
+                id: 33, category: 'essay', type: 'essay', 
+                question: "Analisis Hukum: Dalam UU ITE, menyebarkan berita bohong (Hoaks) yang merugikan konsumen atau menimbulkan kebencian SARA bisa dipidana. Jelaskan mengapa hukum di dunia maya (Siber) perlu diterapkan setegas hukum di dunia nyata?", 
+                keywords: ["dampak luas", "cepat menyebar", "kerugian", "tanggung jawab", "ketertiban"], minKeywords: 2 
+            },
+            { 
+                id: 34, category: 'essay', type: 'essay', 
+                question: "Pemahaman Konsep: Apa yang dimaksud dengan 'Digital Legacy' (Warisan Digital)? Mengapa kita perlu mulai memikirkan nasib akun-akun media sosial dan data kita jika suatu saat kita meninggal dunia?", 
+                keywords: ["data pasca mati", "penyalahgunaan", "kenangan", "ahli waris", "memorialization", "akses"], minKeywords: 2 
+            }
         ];
 
         // --- UTILS ---
@@ -266,7 +355,7 @@
                         </div>
                         <div className="bg-red-50 p-3 mx-4 mt-4 border border-red-200 rounded text-xs text-red-700 flex items-start gap-2">
                             <Icon path={Icons.Alert} className="w-5 h-5 shrink-0 mt-0.5"/>
-                            <span><strong>ANTI-CHEAT:</strong> Pindah tab/minimize = <strong>RESET & DICATAT!</strong></span>
+                            <span><strong>ANTI-CHEAT:</strong> Pindah tab/minimize layar = RESET!</span>
                         </div>
                         <div className="p-6 space-y-4">
                             <div className="flex bg-slate-100 p-1 rounded mb-2">
@@ -307,7 +396,7 @@
         }
 
         function StudentDashboard({ user, onStart }) {
-            // Cek jika ada riwayat pelanggaran sebelumnya
+            // Check previous violations
             const violationKey = `cbt_violation_${user.name}_${user.kelas}`;
             const previousViolations = parseInt(localStorage.getItem(violationKey) || '0');
 
@@ -337,7 +426,7 @@
                             )}
 
                             <div className="bg-blue-50 border border-blue-200 p-3 rounded mb-6 text-sm text-blue-800">
-                                <strong>Info:</strong> Fitur refresh aman (soal tersimpan). Namun, dilarang pindah tab/aplikasi atau ujian reset otomatis.
+                                <strong>Info:</strong> Fitur refresh aman (soal tersimpan). Namun, dilarang pindah tab/aplikasi atau ujian reset otomatis ke dashboard.
                             </div>
                             <button onClick={onStart} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded font-bold text-sm shadow-sm">MULAI UJIAN</button>
                         </div>
@@ -347,8 +436,8 @@
         }
 
         function ExamInterface({ questions, answers, setAnswers, onSubmit, timeLeft, currentIndex, setCurrentIndex, isSubmitting }) {
-            const [drawerOpen, setDrawerOpen] = useState(false);
             const [selectedAnswer, setSelectedAnswer] = useState(null); 
+            const [drawerOpen, setDrawerOpen] = useState(false);
             
             // Safety Check
             if (!questions || questions.length === 0 || !questions[currentIndex]) {
@@ -459,7 +548,7 @@
         // --- VIEW DETAIL MODAL ---
         function ViewDetailModal({ data, onClose }) {
             if (!data) return null;
-            const details = data.detail && data.detail.answers ? data.detail.answers : []; // Structure changed, now object
+            const details = data.detail && data.detail.answers ? data.detail.answers : []; 
             const violations = data.detail && data.detail.violations ? data.detail.violations : 0;
 
             return (
