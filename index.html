@@ -12,45 +12,33 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 2. FONT -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- 3. CONFIG STYLE -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        cbtBlue: '#2563eb', 
-                        cbtDark: '#1e293b',
-                        cbtRed: '#ef4444',
-                    }
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { cbtBlue: '#2563eb', cbtDark: '#1e293b', cbtRed: '#ef4444' }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #e2e8f0; font-size: 14px; user-select: none; }
+        body { background-color: #f1f5f9; font-size: 14px; user-select: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        
-        .question-text { font-size: 16px; line-height: 1.8; text-align: justify; }
-        .question-highlight { background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 12px; margin-bottom: 16px; border-radius: 4px; font-style: italic; color: #475569; }
-        .fade-in { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .question-text { font-size: 15px; line-height: 1.7; color: #334155; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
-
     <div id="root" class="h-full flex flex-col"></div>
 
     <script type="text/babel">
         // --- KONFIGURASI DATABASE ---
-        const EXAM_TOKEN = "JEJAK24"; 
         const SUPABASE_URL = "https://qikeneczlyvbjprnhxyl.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpa2VuZWN6bHl2Ympwcm5oeHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MDM1MTYsImV4cCI6MjA4NjE3OTUxNn0.qRdHiFNMOnxYDOLz9Q-CsistIrYn0GT7HXX4FNkD1d4"; 
         
@@ -60,30 +48,6 @@
         } catch (e) { console.error("Supabase Error:", e); }
 
         const { useState, useEffect, useRef } = React;
-
-        // --- TOKEN SYSTEM ---
-        const generateTimeToken = () => {
-            const now = new Date();
-            const timeBlock = Math.floor(now.getTime() / (5 * 60 * 1000));
-            let hash = timeBlock;
-            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
-            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
-            hash = (hash >> 16) ^ hash;
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
-            let token = "";
-            let num = Math.abs(hash);
-            for(let i=0; i<5; i++) {
-                token += chars[num % chars.length];
-                num = Math.floor(num / chars.length);
-            }
-            return token;
-        };
-
-        const getTokenTimeRemaining = () => {
-            const now = new Date();
-            const nextBlock = Math.ceil(now.getTime() / (5 * 60 * 1000)) * (5 * 60 * 1000);
-            return Math.floor((nextBlock - now.getTime()) / 1000);
-        };
 
         // --- ICONS ---
         const Icon = ({ path, className }) => (
