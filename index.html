@@ -32,6 +32,14 @@
         .question-text { font-size: 15px; line-height: 1.7; color: #334155; }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Modal Animation */
+        @keyframes bounceIn { 
+            0% { transform: scale(0.3); opacity: 0; } 
+            50% { transform: scale(1.05); opacity: 1; } 
+            70% { transform: scale(0.9); } 
+            100% { transform: scale(1); } 
+        }
+        .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -67,7 +75,6 @@
             LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
             Download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
             Eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
-            Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
             Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
         };
 
@@ -292,9 +299,29 @@
             r({score: h >= min ? 100 : h > 0 ? 50 : 20, feedback: "Dinilai oleh AI."});
         }, 800));
 
-        // ==========================================
-        // COMPONENTS
-        // ==========================================
+        // --- COMPONENTS ---
+        
+        // --- COMPONENT PELANGGARAN MODAL (DEFINED HERE) ---
+        function ViolationModal({ onClose }) {
+            return (
+                <div className="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4 animate-bounce-in">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center border-t-8 border-red-500">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Icon path={Icons.Alert} className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">SESI UJIAN DIHENTIKAN</h2>
+                        <p className="text-sm text-slate-600 mb-6">
+                            Anda terdeteksi meninggalkan halaman ujian (pindah tab/minimize).
+                            <br/><br/>
+                            Sesi ujian Anda telah <strong>DIBATALKAN</strong> dan soal akan diacak ulang.
+                        </p>
+                        <button onClick={onClose} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-lg transition active:scale-95">
+                            SAYA MENGERTI
+                        </button>
+                    </div>
+                </div>
+            );
+        }
 
         function LoginScreen({ onLogin }) {
             const [isAdmin, setIsAdmin] = useState(false);
@@ -317,10 +344,12 @@
                             <h1 className="text-xl font-bold text-slate-800 uppercase tracking-tight">CBT Informatika</h1>
                             <p className="text-xs text-slate-500 mt-1">Computer Based Test</p>
                         </div>
+                        
                         <div className="bg-red-50 p-3 mx-4 mt-4 border border-red-200 rounded text-xs text-red-700 flex items-start gap-2">
                             <Icon path={Icons.Alert} className="w-5 h-5 shrink-0 mt-0.5"/>
-                            <span><strong>ANTI-CHEAT:</strong> Pindah tab/minimize layar = RESET!</span>
+                            <span><strong>PERINGATAN:</strong> Pindah tab/minimize layar = RESET!</span>
                         </div>
+
                         <div className="p-6 space-y-4">
                             <div className="flex bg-slate-100 p-1 rounded mb-2">
                                 <button onClick={() => setIsAdmin(false)} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${!isAdmin ? 'bg-white text-cbtBlue shadow-sm' : 'text-slate-500'}`}>SISWA</button>
@@ -385,7 +414,7 @@
                             {previousViolations > 0 && (
                                 <div className="bg-red-50 border border-red-200 p-3 rounded mb-4 text-xs text-red-800 flex items-center gap-2">
                                     <Icon path={Icons.Alert} className="w-4 h-4"/>
-                                    <span>Anda tercatat melakukan <strong>{previousViolations}x Pelanggaran (Reset)</strong> sebelumnya.</span>
+                                    <span>Anda tercatat melakukan <strong>{previousViolations}x Reset (Interupsi)</strong> sebelumnya.</span>
                                 </div>
                             )}
 
@@ -469,7 +498,7 @@
                                         <div className="grid gap-2">{q.pairs.map((pair, idx) => {
                                             const filled = answers[q.id]?.[idx];
                                             return <div key={idx} className="flex flex-col sm:flex-row border rounded bg-white overflow-hidden">
-                                                <div className="sm:w-1/2 p-2 bg-slate-50 border-b sm:border-b-0 sm:border-r text-sm font-medium flex items-center gap-2"><span className="bg-slate-200 text-xs w-5 h-5 flex items-center justify-center rounded font-bold">{String.fromCharCode(65+idx)}</span>{pair.left}</div>
+                                                <div className="sm:w-1/2 p-2 bg-slate-50 border-b sm:border-b-0 sm:border-r text-sm font-medium flex items-center gap-2"><span className="bg-slate-200 text-slate-600 text-xs w-5 h-5 flex items-center justify-center rounded font-bold">{String.fromCharCode(65+idx)}</span>{pair.left}</div>
                                                 <div onClick={()=>handleSlotClick(idx)} className={`sm:w-1/2 p-2 min-h-[40px] flex items-center justify-center cursor-pointer ${filled?'bg-blue-50':selectedAnswer?'bg-yellow-50 border-dashed border-yellow-400':''}`}>{filled ? <div className="flex justify-between w-full px-2"><span className="text-blue-700 font-bold text-sm">{filled}</span><button onClick={(e)=>{e.stopPropagation();removeMatch(idx)}} className="text-red-500"><Icon path={Icons.X} className="w-4 h-4"/></button></div> : <span className="text-xs text-slate-300 font-bold">{selectedAnswer?"PILIH SINI":"KOSONG"}</span>}</div>
                                             </div>
                                         })}</div>
@@ -611,6 +640,7 @@
             const [state, setState] = useState({ view: 'login', user: null, questions: [], answers: {}, score: 0, timeLeft: 40*60, currentIndex: 0 });
             const [submitting, setSubmitting] = useState(false);
             const [loading, setLoading] = useState(true);
+            const [violationModal, setViolationModal] = useState(false); // New state for modal
 
             // ANTI CHEAT: VISIBILITY CHANGE LISTENER
             useEffect(() => {
@@ -621,16 +651,29 @@
                         const currentCount = parseInt(localStorage.getItem(key) || '0');
                         localStorage.setItem(key, currentCount + 1);
 
-                        alert(`PELANGGARAN TERDETEKSI! (Total: ${currentCount + 1}x)\n\nAnda meninggalkan halaman ujian (pindah tab/minimize). Sesi Anda telah dibatalkan dan akan di-reset ke Dashboard.`);
+                        // Hapus sesi ujian yang sedang berjalan agar tidak bisa resume
                         localStorage.removeItem('cbt_active_exam');
-                        // Reset to dashboard for student, clear questions to force reshuffle next time
-                        // Force reload to clean state completely
-                        window.location.reload();
+                        
+                        // Kembalikan ke Dashboard, reset soal, tampilkan Modal
+                        setState(p => ({ 
+                            ...p, 
+                            view: 'dashboard', 
+                            questions: [], 
+                            answers: {}, 
+                            timeLeft: 40*60, 
+                            currentIndex: 0 
+                        }));
+                        setViolationModal(true);
                     }
                 };
-                document.addEventListener('visibilitychange', handleVisibilityChange);
+                
+                // Add event listener only if violationModal is not already shown to prevent loop/spam
+                if (!violationModal) {
+                    document.addEventListener('visibilitychange', handleVisibilityChange);
+                }
+                
                 return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-            }, [state.view, state.user]);
+            }, [state.view, state.user, violationModal]);
 
             // Load Session (Persistence for Refresh only)
             useEffect(() => {
@@ -650,10 +693,13 @@
                 setLoading(false);
             }, []);
 
-            // Save Session on Change
+            // Save Session on Change (PERSISTENCE)
             useEffect(() => {
-                if(state.user) localStorage.setItem('cbt_active_exam', JSON.stringify(state));
-            }, [state]);
+                // Hanya simpan sesi jika user login DAN bukan karena violation reset
+                if(state.user && !violationModal) {
+                    localStorage.setItem('cbt_active_exam', JSON.stringify(state));
+                }
+            }, [state, violationModal]);
 
             // Timer
             useEffect(() => {
@@ -726,12 +772,18 @@
 
             if(loading) return <div className="flex h-screen items-center justify-center bg-slate-50 flex-col"><div className="w-10 h-10 border-4 border-cbtBlue border-t-transparent rounded-full animate-spin mb-3"></div><span className="text-slate-500 font-bold text-sm">MEMUAT...</span></div>;
 
-            if(state.view === 'login') return <LoginScreen onLogin={(n,r,d) => setState(p => ({...p, user:{name:n, role:r, ...d}, view: r==='admin'?'admin':'dashboard'}))} />;
-            if(state.view === 'dashboard') return <StudentDashboard user={state.user} onStart={startExam} />;
-            if(state.view === 'exam') return <ExamInterface questions={state.questions} answers={state.answers} setAnswers={a => setState(p => ({...p, answers: a}))} timeLeft={state.timeLeft} currentIndex={state.currentIndex} setCurrentIndex={i => setState(p => ({...p, currentIndex: i}))} onSubmit={submit} isSubmitting={submitting} />;
-            if(state.view === 'result') return <ResultScreen score={state.score} user={state.user} onHome={logout} />;
-            if(state.view === 'admin') return <AdminPanel onLogout={logout} />;
-            return null;
+            return (
+                <>
+                    {state.view === 'login' && <LoginScreen onLogin={(n,r,d) => setState(p => ({...p, user:{name:n, role:r, ...d}, view: r==='admin'?'admin':'dashboard'}))} />}
+                    {state.view === 'dashboard' && <StudentDashboard user={state.user} onStart={startExam} />}
+                    {state.view === 'exam' && <ExamInterface questions={state.questions} answers={state.answers} setAnswers={a => setState(p => ({...p, answers: a}))} timeLeft={state.timeLeft} currentIndex={state.currentIndex} setCurrentIndex={i => setState(p => ({...p, currentIndex: i}))} onSubmit={submit} isSubmitting={submitting} />}
+                    {state.view === 'result' && <ResultScreen score={state.score} user={state.user} onHome={logout} />}
+                    {state.view === 'admin' && <AdminPanel onLogout={logout} />}
+                    
+                    {/* MODAL PELANGGARAN */}
+                    {violationModal && <ViolationModal onClose={() => setViolationModal(false)} />}
+                </>
+            );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
