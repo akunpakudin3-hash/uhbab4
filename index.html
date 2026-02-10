@@ -52,11 +52,7 @@
         
         let supabaseClient = null;
         try {
-            if (typeof supabase !== 'undefined' && SUPABASE_URL !== "") {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.warn("Supabase tidak terkonfigurasi. Menggunakan Mode Lokal.");
-            }
+            if (typeof supabase !== 'undefined') supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) { console.error("Supabase Error:", e); }
 
         const { useState, useEffect, useRef } = React;
@@ -84,33 +80,7 @@
             Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />,
             Search: <><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></>,
             ArrowUp: <polyline points="18 15 12 9 6 15" />,
-            ArrowDown: <polyline points="6 9 12 15 18 9" />,
-            Cloud: <><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></>,
-            WifiOff: <><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></>
-        };
-
-        // --- TOKEN SYSTEM ---
-        const generateTimeToken = () => {
-            const now = new Date();
-            const timeBlock = Math.floor(now.getTime() / (5 * 60 * 1000));
-            let hash = timeBlock;
-            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
-            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
-            hash = (hash >> 16) ^ hash;
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
-            let token = "";
-            let num = Math.abs(hash);
-            for(let i=0; i<5; i++) {
-                token += chars[num % chars.length];
-                num = Math.floor(num / chars.length);
-            }
-            return token;
-        };
-
-        const getTokenTimeRemaining = () => {
-            const now = new Date();
-            const nextBlock = Math.ceil(now.getTime() / (5 * 60 * 1000)) * (5 * 60 * 1000);
-            return Math.floor((nextBlock - now.getTime()) / 1000);
+            ArrowDown: <polyline points="6 9 12 15 18 9" />
         };
 
         // --- BANK SOAL HOTS (JEJAK DIGITAL) ---
@@ -255,6 +225,7 @@
 
         // --- COMPONENTS ---
         
+        // --- MODAL PELANGGARAN ---
         function ViolationModal({ onClose }) {
             return (
                 <div className="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4 animate-bounce-in">
@@ -269,7 +240,7 @@
                             Sesi ujian Anda telah <strong>DIBATALKAN</strong> dan soal akan diacak ulang.
                         </p>
                         <button onClick={onClose} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-lg transition active:scale-95">
-                            SAYA MENGERTI
+                            KEMBALI KE DASHBOARD
                         </button>
                     </div>
                 </div>
@@ -283,7 +254,7 @@
                 <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Icon path={Icons.Alert} className="w-8 h-8 text-red-600" />
+                            <Icon path={Icons.Trash} className="w-8 h-8 text-red-600" />
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">Hapus Data?</h2>
                         <p className="text-sm text-slate-600 mb-6">
@@ -362,6 +333,7 @@
         }
 
         function StudentDashboard({ user, onStart }) {
+            // Check previous violations
             const violationKey = `cbt_violation_${user.name}_${user.kelas}`;
             const previousViolations = parseInt(localStorage.getItem(violationKey) || '0');
 
