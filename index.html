@@ -75,6 +75,7 @@
             LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
             Download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
             Eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+            // DEFINISI IKON TRASH DITAMBAHKAN DI SINI
             Trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
             Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
             Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />,
@@ -356,6 +357,7 @@
         }
 
         function StudentDashboard({ user, onStart }) {
+            // Check previous violations
             const violationKey = `cbt_violation_${user.name}_${user.kelas}`;
             const previousViolations = parseInt(localStorage.getItem(violationKey) || '0');
 
@@ -398,7 +400,16 @@
             const [selectedAnswer, setSelectedAnswer] = useState(null); 
             const [drawerOpen, setDrawerOpen] = useState(false);
             
-            if (!questions || questions.length === 0 || !questions[currentIndex]) return <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">Memuat...</div>;
+            // Safety Check
+            if (!questions || questions.length === 0 || !questions[currentIndex]) {
+                return (
+                    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+                        <div className="w-12 h-12 border-4 border-cbtBlue border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-600 font-bold">Memuat Soal...</p>
+                        <button onClick={() => { localStorage.removeItem('cbt_active_exam'); window.location.reload(); }} className="mt-4 text-xs text-blue-500 hover:underline">Reset & Refresh</button>
+                    </div>
+                );
+            }
 
             const q = questions[currentIndex];
             const isLast = currentIndex === questions.length - 1;
