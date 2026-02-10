@@ -75,7 +75,36 @@
             LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
             Download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
             Eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
-            Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+            Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
+            Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />,
+            SortAsc: <path d="M3 6h18M3 12h12M3 18h6" />, // Icon Sort A-Z (lines getting shorter) or generic arrow
+            ArrowUp: <polyline points="18 15 12 9 6 15" />,
+            ArrowDown: <polyline points="6 9 12 15 18 9" />,
+            Sort: <><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></>
+        };
+
+        // --- TOKEN SYSTEM ---
+        const generateTimeToken = () => {
+            const now = new Date();
+            const timeBlock = Math.floor(now.getTime() / (5 * 60 * 1000));
+            let hash = timeBlock;
+            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+            hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+            hash = (hash >> 16) ^ hash;
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
+            let token = "";
+            let num = Math.abs(hash);
+            for(let i=0; i<5; i++) {
+                token += chars[num % chars.length];
+                num = Math.floor(num / chars.length);
+            }
+            return token;
+        };
+
+        const getTokenTimeRemaining = () => {
+            const now = new Date();
+            const nextBlock = Math.ceil(now.getTime() / (5 * 60 * 1000)) * (5 * 60 * 1000);
+            return Math.floor((nextBlock - now.getTime()) / 1000);
         };
 
         // --- BANK SOAL HOTS (JEJAK DIGITAL) ---
@@ -83,7 +112,7 @@
             // --- A. PILIHAN GANDA (10 Soal Studi Kasus) ---
             { 
                 id: 1, category: 'mc', type: 'choice', 
-                question: "Studi Kasus: Dina adalah siswa berprestasi yang mencalonkan diri sebagai ketua OSIS. Namun, ia kalah tipis dari pesaingnya. Dalam keadaan emosi yang tidak stabil, Dina memposting status di media sosial pribadinya yang berisi kata-kata kasar, sindiran, dan tuduhan tidak berdasar terhadap pemenang. Lima belas menit kemudian, setelah ditenangkan oleh sahabatnya, Dina menyadari kesalahannya dan segera menghapus postingan tersebut. Ia merasa lega karena postingan sudah hilang dari timeline-nya.\n\nBerdasarkan pemahaman tentang sifat jejak digital, mengapa tindakan penghapusan 'Delete' yang dilakukan Dina tidak menjamin reputasinya aman sepenuhnya?", 
+                question: "Studi Kasus: Dina memposting status kasar di medsos, lalu menghapusnya 15 menit kemudian. Namun, tangkapan layar status itu tetap menyebar. Mengapa tindakan penghapusan 'Delete' tidak menjamin jejak digital hilang?", 
                 options: [
                     "Karena server media sosial selalu mengalami error saat menghapus data pengguna.", 
                     "Karena dalam waktu 15 menit, konten tersebut mungkin sudah di-screenshot (tangkapan layar) oleh orang lain atau tersimpan di arsip server (mirroring).", 
@@ -94,201 +123,120 @@
             },
             { 
                 id: 2, category: 'mc', type: 'choice', 
-                question: "Situasi: Budi sangat senang akan pergi berlibur ke luar negeri untuk pertama kalinya. Saking antusiasnya, sesampainya di bandara, ia memotret tiket pesawat (Boarding Pass) miliknya. Ia merasa sudah berhati-hati dengan menutupi nama lengkapnya menggunakan stiker di fitur Instagram Story sebelum mengunggahnya. Namun, teman sekelasnya yang ahli informatika memperingatkan bahwa tindakan itu masih sangat berbahaya.\n\nAnalisis: Di bagian manakah letak risiko keamanan utama pada foto tiket Budi yang sering diabaikan orang awam?", 
+                question: "Situasi: Budi mengunggah foto 'Boarding Pass' ke Instagram Story dengan menutupi nama penumpangnya. Analisislah risiko keamanan yang tersisa!", 
                 options: [
-                    "Orang jahat bisa mengetahui bahwa rumah Budi sedang kosong dan berniat mencuri.", 
-                    "Kode Barcode/QR pada tiket masih terlihat jelas; kode ini menyimpan data sensitif (seperti NIK, PNR) yang bisa dipindai ulang oleh orang lain.", 
-                    "Stiker di Instagram bisa hilang jika koneksi internet lambat.", 
-                    "Maskapai penerbangan akan membatalkan tiket secara otomatis jika mendeteksi tiket tersebut diunggah ke media sosial."
+                    "Orang tahu rumah Budi kosong.", 
+                    "Kode Barcode/QR pada tiket masih terlihat dan dapat dipindai untuk mencuri data sensitif (NIK).", 
+                    "Stiker penutup bisa hilang.", 
+                    "Maskapai akan membatalkan tiket otomatis."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 3, category: 'mc', type: 'choice', 
-                question: "Fenomena: Seorang siswa sedang mengerjakan tugas sekolah tentang spesifikasi komputer. Ia mencari kata kunci 'Laptop Gaming Terbaik' di mesin pencari Google. Ia hanya membuka beberapa situs ulasan teknologi. Keesokan harinya, saat ia membuka media sosial (Instagram/Facebook), beranda miliknya tiba-tiba dipenuhi oleh iklan promo laptop dari berbagai toko online.\n\nKonsep Informatika: Mekanisme jejak digital apa yang bekerja di latar belakang sehingga fenomena ini bisa terjadi?", 
+                question: "Fenomena: Setelah mencari 'Laptop Gaming' di Google, media sosial seorang siswa dipenuhi iklan laptop. Mekanisme jejak digital apa yang bekerja?", 
                 options: [
-                    "Jejak Digital Aktif: Siswa tersebut sengaja meminta dikirimi iklan.", 
-                    "Jejak Digital Pasif: Sistem menggunakan 'Cookies' dan algoritma pelacakan lintas situs untuk merekam minat pengguna dan menargetkan iklan (Targeted Ads).", 
-                    "Penyadapan Ilegal: Pemilik toko laptop meretas kamera HP siswa tersebut.", 
-                    "Kebetulan Semata: Karena laptop memang barang yang sedang populer."
+                    "Jejak Digital Aktif.", 
+                    "Jejak Digital Pasif (Cookies & Algoritma Pelacakan).", 
+                    "Penyadapan Ilegal.", 
+                    "Kebetulan Semata."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 4, category: 'mc', type: 'choice', 
-                question: "Analisis Keamanan: Kamu menerima pesan berantai (broadcast) di grup WhatsApp kelas yang berbunyi: 'KABAR GEMBIRA! Kemdikbud membagikan kuota internet gratis 100GB untuk belajar. Segera klaim sebelum habis di tautan ini: http://internet-kemdikbud-gratis.xyz'.\n\nSebagai siswa yang memiliki literasi digital baik, langkah nalar kritis pertama apa yang harus kamu lakukan untuk memverifikasi kebenaran pesan tersebut?", 
+                question: "Analisis: Kamu menerima pesan WA berisi link: 'http://internet-kemdikbud-gratis.xyz'. Langkah nalar kritis pertama untuk verifikasi?", 
                 options: [
-                    "Segera mengklik tautan tersebut karena takut kuotanya kehabisan.", 
-                    "Meneruskan (forward) pesan ke grup keluarga agar semua orang tahu.", 
-                    "Menganalisis nama domain URL-nya. Instansi pemerintah resmi selalu menggunakan domain '.go.id', bukan '.xyz' atau blogspot.", 
-                    "Membalas pesan pengirim dan menanyakan apakah dia sudah mendapatkannya."
+                    "Langsung klik.", 
+                    "Forward ke grup.", 
+                    "Analisis domain URL (bukan .go.id berarti mencurigakan).", 
+                    "Tanya pengirim."
                 ], 
                 correctAnswer: 2 
             },
             { 
                 id: 5, category: 'mc', type: 'choice', 
-                question: "Miskonsepsi: Andi pergi ke warnet untuk mengerjakan tugas. Ia login ke akun email-nya menggunakan browser dalam mode 'Incognito' (Penyamaran) atau 'Private Window'. Andi merasa sangat aman dan yakin bahwa aktivitasnya tidak bisa dilacak oleh siapapun.\n\nFakta Teknis: Manakah pernyataan yang BENAR mengenai batasan keamanan mode Incognito yang sering disalahpahami?", 
+                question: "Miskonsepsi: Apa batasan keamanan 'Incognito Mode' yang sering disalahpahami pengguna?", 
                 options: [
-                    "Incognito hanya mencegah browser menyimpan riwayat (history) dan cookies di komputer lokal, namun Admin Jaringan (ISP) tetap bisa melihat lalu lintas data.", 
-                    "Incognito mode sebenarnya merekam password pengguna secara diam-diam untuk dijual.", 
-                    "Incognito mode membuat koneksi internet menjadi sangat lambat karena enkripsi berlebihan.", 
-                    "Incognito mode akan menghapus akun email secara otomatis setelah jendela ditutup."
+                    "Incognito hanya mencegah browser menyimpan history lokal, tapi ISP/Admin tetap bisa melihat aktivitas.", 
+                    "Merekam password diam-diam.", 
+                    "Memperlambat internet.", 
+                    "Menghapus akun otomatis."
                 ], 
                 correctAnswer: 0 
             },
             { 
                 id: 6, category: 'mc', type: 'choice', 
-                question: "Isu Sosial: Bu Ani adalah ibu muda yang sangat bangga dengan anaknya. Setiap hari, ia mengunggah foto dan video anaknya ke media sosial, mulai dari momen bangun tidur, lokasi sekolah, hingga sertifikat prestasi lengkap dengan tanggal lahir. Fenomena ini disebut 'Sharenting'.\n\nEvaluasi Risiko: Apa bahaya terbesar jangka panjang dari perilaku Sharenting ini terhadap 'Identitas Digital' sang anak di masa depan?", 
+                question: "Isu Sosial: Apa risiko jangka panjang terbesar dari 'Sharenting' (Orang tua oversharing foto anak) bagi anak?", 
                 options: [
-                    "Anak akan kehabisan memori penyimpanan di otaknya karena terlalu banyak difoto.", 
-                    "Anak kehilangan hak privasi atas dirinya sendiri dan data-data tersebut (lokasi, tanggal lahir) menjadi 'makanan empuk' bagi pelaku kejahatan siber (profiling).", 
-                    "Anak akan otomatis menjadi artis terkenal tanpa usaha.", 
-                    "Orang tua akan kehilangan hak asuh anak secara hukum."
+                    "Memori penuh.", 
+                    "Hilangnya hak privasi anak & risiko penyalahgunaan data (profiling).", 
+                    "Anak jadi selebgram.", 
+                    "Kehilangan hak asuh."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 7, category: 'mc', type: 'choice', 
-                question: "Dunia Kerja: Sebuah perusahaan teknologi besar sedang merekrut pegawai baru. Ada satu kandidat dengan IPK 4.0 dan lulusan universitas ternama. Wawancaranya berjalan lancar. Namun, di tahap akhir, perusahaan memutuskan untuk MENOLAK kandidat tersebut setelah tim HRD melakukan pemeriksaan latar belakang digital.\n\nPrediksi: Faktor jejak digital apa yang paling mungkin menyebabkan penolakan tersebut?", 
+                question: "Dunia Kerja: Pelamar kerja ditolak perusahaan karena jejak digital, padahal nilai akademiknya bagus. Faktor penyebab paling mungkin?", 
                 options: [
-                    "Kandidat tersebut jarang memposting foto liburan di Instagram.", 
-                    "Jumlah followers kandidat tersebut terlalu sedikit.", 
-                    "Ditemukan komentar-komentar lama kandidat yang berisi ujaran kebencian (hate speech), rasisme, atau perilaku tidak etis di forum publik.", 
-                    "Kandidat menggunakan nama asli di akun media sosialnya."
+                    "Jarang update status.", 
+                    "Followers sedikit.", 
+                    "Ditemukan ujaran kebencian atau perilaku tidak etis di postingan masa lalu.", 
+                    "Pakai nama asli."
                 ], 
                 correctAnswer: 2 
             },
             { 
                 id: 8, category: 'mc', type: 'choice', 
-                question: "Manajemen Diri: Rara ingin mendaftar beasiswa ke luar negeri tahun depan. Ia sadar bahwa panitia seleksi mungkin akan melihat jejak digitalnya. Rara ingin mengubah citra digitalnya menjadi lebih positif.\n\nStrategi: Manakah langkah paling efektif dan produktif yang bisa dilakukan Rara?", 
+                question: "Strategi: Langkah paling efektif untuk membangun reputasi digital positif adalah...", 
                 options: [
-                    "Membuat banyak akun palsu untuk memberikan komentar pujian di akun aslinya.", 
-                    "Mulai aktif mengunggah konten karya, prestasi, hobi yang positif, atau berbagi ilmu (konten edukatif) di media sosialnya.", 
-                    "Mengunci semua akun media sosial (Private) dan tidak pernah berinteraksi dengan siapapun.", 
-                    "Menghapus semua jejak digital masa lalu dan membiarkan akunnya kosong melompong."
+                    "Buat akun palsu memuji diri.", 
+                    "Aktif mengunggah karya, prestasi, atau konten edukatif.", 
+                    "Kunci akun selamanya.", 
+                    "Hapus semua jejak."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 9, category: 'mc', type: 'choice', 
-                question: "Konsep Dasar: Dalam literasi digital, kita mengenal istilah 'Jejak Digital Aktif' dan 'Jejak Digital Pasif'. Perbedaan mendasar di antara keduanya terletak pada...", 
+                question: "Konsep: Perbedaan utama Jejak Digital Aktif vs Pasif?", 
                 options: [
-                    "Waktu kejadian data tersebut dibuat (Siang vs Malam).", 
-                    "Tingkat kesadaran (Intensi) pengguna: Aktif dilakukan dengan sadar (posting/komen), Pasif direkam sistem tanpa sadar (IP Address/Lokasi).", 
-                    "Kemungkinan data tersebut dihapus (Aktif bisa dihapus, Pasif permanen).", 
-                    "Jenis kontennya (Aktif berupa teks, Pasif berupa gambar)."
+                    "Waktu kejadian.", 
+                    "Intensi (Kesadaran): Aktif dilakukan sadar, Pasif direkam sistem otomatis.", 
+                    "Bisa dihapus vs Tidak.", 
+                    "Teks vs Gambar."
                 ], 
                 correctAnswer: 1 
             },
             { 
                 id: 10, category: 'mc', type: 'choice', 
-                question: "Social Engineering: Banyak orang menggunakan tanggal lahir (misal: 170890) sebagai PIN ATM atau Password karena mudah diingat. Namun, pakar keamanan siber sangat melarang hal ini.\n\nAlasan Logis: Mengapa menggunakan tanggal lahir sebagai sandi dianggap sebagai celah keamanan yang fatal?", 
+                question: "Keamanan: Mengapa tanggal lahir dilarang digunakan sebagai PIN/Password?", 
                 options: [
-                    "Karena tanggal lahir adalah data publik yang sangat mudah ditemukan di profil media sosial, sehingga peretas bisa menebaknya dengan mudah.", 
-                    "Karena angka tanggal lahir membawa energi negatif pada sistem komputer.", 
-                    "Karena sistem komputer modern tidak bisa memproses angka tanggal.", 
-                    "Karena tanggal lahir terlalu pendek jumlah digitnya."
+                    "Data publik mudah ditebak (Social Engineering).", 
+                    "Angka sial.", 
+                    "Komputer sulit baca.", 
+                    "Terlalu pendek."
                 ], 
                 correctAnswer: 0 
             },
-
-            // --- B. BENAR / SALAH (2 Soal) ---
-            { 
-                id: 13, category: 'bs', type: 'choice', 
-                question: "Pernyataan: 'Menggunakan VPN (Virtual Private Network) gratisan menjamin 100% data kita aman dan tidak akan ada yang bisa melihat aktivitas kita, termasuk penyedia VPN itu sendiri.'\n\nApakah pernyataan ini Benar atau Salah?", 
-                options: ["Benar", "Salah (Penyedia VPN bisa melihat log aktivitas kita, terutama VPN gratis)"], 
-                correctAnswer: 1 
-            },
-            { 
-                id: 14, category: 'bs', type: 'choice', 
-                question: "Pernyataan: 'Jejak digital pasif tercipta tanpa interaksi langsung atau kesadaran penuh pengguna, contohnya server web yang mencatat alamat IP perangkat yang berkunjung.'\n\nApakah pernyataan ini Benar atau Salah?", 
-                options: ["Benar", "Salah"], 
-                correctAnswer: 0 
-            },
-
+            // --- B. BENAR / SALAH ---
+            { id: 13, category: 'bs', type: 'choice', question: "(B/S) Menggunakan VPN Gratis menjamin 100% data kita aman dari pemilik layanan VPN itu sendiri.", options: ["Benar", "Salah (Penyedia bisa catat log)"], correctAnswer: 1 },
+            { id: 14, category: 'bs', type: 'choice', question: "(B/S) Server web mencatat alamat IP perangkatmu saat berkunjung adalah contoh Jejak Digital Pasif.", options: ["Benar", "Salah"], correctAnswer: 0 },
             // --- C. MENJODOHKAN (4 Pasang) ---
-            { 
-                id: 15, category: 'match', type: 'complex_match', question: "Pasangkan jenis Ancaman Siber berikut dengan definisi atau skenarionya yang tepat:", 
-                pairs: [
-                    { left: "Phishing", right: "Memancing korban klik link palsu" },
-                    { left: "Doxing", right: "Menyebarkan alamat rumah/data pribadi" },
-                    { left: "Sniffing", right: "Menyadap data di WiFi publik" },
-                    { left: "Defacing", right: "Mengubah tampilan halaman web" }
-                ] 
-            },
-            { 
-                id: 16, category: 'match', type: 'complex_match', question: "Klasifikasikan aktivitas berikut ke dalam jenis jejak digital yang sesuai:", 
-                pairs: [
-                    { left: "Jejak Aktif", right: "Memposting foto di Instagram" },
-                    { left: "Jejak Pasif", right: "Google Maps merekam rute" },
-                    { left: "Metadata", right: "Info jenis kamera pada file foto" },
-                    { left: "Cookies", right: "Website mengingat keranjang belanja" }
-                ] 
-            },
-            { 
-                id: 17, category: 'match', type: 'complex_match', question: "Jodohkan fitur keamanan digital dengan fungsi utamanya:", 
-                pairs: [
-                    { left: "2FA (Two-Factor)", right: "Kode OTP dikirim ke HP" },
-                    { left: "Password Manager", right: "Menyimpan banyak sandi rumit" },
-                    { left: "Incognito", right: "Tidak menyimpan riwayat lokal" },
-                    { left: "VPN", right: "Menyembunyikan lokasi (IP)" }
-                ] 
-            },
-            { 
-                id: 18, category: 'match', type: 'complex_match', question: "Pasangkan istilah pelanggaran Etika Digital berikut:", 
-                pairs: [
-                    { left: "Cyberbullying", right: "Perundungan/Ejekan online" },
-                    { left: "Plagiarisme", right: "Copy-paste tugas tanpa sumber" },
-                    { left: "Hate Speech", right: "Provokasi kebencian SARA" },
-                    { left: "Hoaks", right: "Berita bohong yang meresahkan" }
-                ] 
-            },
-            { 
-                id: 19, category: 'match', type: 'complex_match', question: "Kenali risiko file berdasarkan ekstensinya:", 
-                pairs: [
-                    { left: "Sangat Berisiko", right: "File .exe atau .apk (Aplikasi)" },
-                    { left: "Risiko Rendah", right: "File .jpg atau .png (Gambar)" },
-                    { left: "Risiko Sedang", right: "File .pdf atau .docx (Dokumen)" },
-                    { left: "Perlu Scan", right: "File .zip atau .rar (Arsip)" }
-                ] 
-            },
-
-            // --- D. URAIAN / ESSAY (7 Soal HOTS) ---
-            { 
-                id: 28, category: 'essay', type: 'essay', 
-                question: "Studi Kasus Universitas: Saat ini, banyak universitas ternama di dunia mulai mengecek media sosial calon mahasiswanya sebagai bagian dari seleksi. Analisislah mengapa nilai akademik (raport) saja tidak cukup bagi universitas, dan apa yang sebenarnya mereka cari dari jejak digital pelamar?", 
-                keywords: ["karakter", "reputasi", "integritas", "perilaku", "etika", "nilai moral"], minKeywords: 2 
-            },
-            { 
-                id: 29, category: 'essay', type: 'essay', 
-                question: "Analisis Privasi: Fitur GPS pada aplikasi transportasi online (Ojol) sangat penting agar pengemudi bisa menjemput kita dengan akurat. Namun, di sisi lain, ini berarti aplikasi tersebut melacak ke mana saja kita pergi setiap hari. Jelaskan dilema 'Kenyamanan vs Privasi' ini, dan bagaimana cara bijak menggunakannya!", 
-                keywords: ["mudah", "lacak", "privasi", "data lokasi", "izin akses", "kesadaran"], minKeywords: 2 
-            },
-            { 
-                id: 30, category: 'essay', type: 'essay', 
-                question: "Simulasi Insiden: Tiba-tiba ada temanmu yang melapor bahwa ada akun Instagram baru yang menggunakan foto profil dan nama kamu (Impersonation). Akun tersebut mengirim pesan DM ke banyak orang meminjam uang. Tuliskan 3 langkah darurat dan sistematis yang akan kamu lakukan untuk menangani situasi ini!", 
-                keywords: ["lapor", "report akun", "blokir", "klarifikasi", "status wa", "screenshot"], minKeywords: 3 
-            },
-            { 
-                id: 31, category: 'essay', type: 'essay', 
-                question: "Argumentasi: Ada pendapat yang mengatakan: 'Jejak digital pasif (seperti riwayat pencarian) lebih berbahaya daripada jejak aktif karena pengguna tidak sadar data itu dikumpulkan.' Apakah kamu setuju? Jelaskan argumenmu mengenai bahaya 'Profiling' data!", 
-                keywords: ["setuju", "tanpa sadar", "profiling", "iklan", "manipulasi", "prediksi"], minKeywords: 2 
-            },
-            { 
-                id: 32, category: 'essay', type: 'essay', 
-                question: "Proyek Kreatif: Buatlah sebuah kalimat slogan (tagline) kampanye singkat yang mengajak remaja untuk berpikir sebelum memposting ('Think Before You Post'), lalu jelaskan makna filosofis di balik slogan buatanmu itu!", 
-                keywords: ["pikir", "masa depan", "bijak", "saring", "jejak", "reputasi"], minKeywords: 2 
-            },
-            { 
-                id: 33, category: 'essay', type: 'essay', 
-                question: "Analisis Hukum: Dalam UU ITE, menyebarkan berita bohong (Hoaks) yang merugikan konsumen atau menimbulkan kebencian SARA bisa dipidana. Jelaskan mengapa hukum di dunia maya (Siber) perlu diterapkan setegas hukum di dunia nyata?", 
-                keywords: ["dampak luas", "cepat menyebar", "kerugian", "tanggung jawab", "ketertiban"], minKeywords: 2 
-            },
-            { 
-                id: 34, category: 'essay', type: 'essay', 
-                question: "Pemahaman Konsep: Apa yang dimaksud dengan 'Digital Legacy' (Warisan Digital)? Mengapa kita perlu mulai memikirkan nasib akun-akun media sosial dan data kita jika suatu saat kita meninggal dunia?", 
-                keywords: ["data pasca mati", "penyalahgunaan", "kenangan", "ahli waris", "memorialization", "akses"], minKeywords: 2 
-            }
+            { id: 15, category: 'match', type: 'complex_match', question: "Pasangkan jenis Ancaman Siber:", pairs: [{ left: "Phishing", right: "Link Palsu" }, { left: "Doxing", right: "Sebar Data Pribadi" }, { left: "Sniffing", right: "Penyadapan Data" }, { left: "Defacing", right: "Peretasan Web" }] },
+            { id: 16, category: 'match', type: 'complex_match', question: "Jodohkan aktivitas jejak digital:", pairs: [{ left: "Jejak Aktif", right: "Posting Status" }, { left: "Jejak Pasif", right: "History Browser" }, { left: "Metadata", right: "Lokasi Foto" }, { left: "Cookies", right: "Simpan Login" }] },
+            { id: 17, category: 'match', type: 'complex_match', question: "Pasangkan fitur keamanan:", pairs: [{ left: "2FA", right: "Kode OTP" }, { left: "Password Manager", right: "Simpan Sandi Rumit" }, { left: "Incognito", right: "Tanpa History Lokal" }, { left: "VPN", right: "Samarkan IP" }] },
+            { id: 18, category: 'match', type: 'complex_match', question: "Jodohkan istilah Etika Digital:", pairs: [{ left: "Cyberbullying", right: "Perundungan" }, { left: "Plagiarisme", right: "Curi Karya" }, { left: "Hate Speech", right: "Ujaran Kebencian" }, { left: "Hoaks", right: "Berita Bohong" }] },
+            { id: 19, category: 'match', type: 'complex_match', question: "Pasangkan Risiko File:", pairs: [{ left: ".exe", right: "Sangat Berisiko" }, { left: ".jpg", right: "Risiko Rendah" }, { left: ".pdf", right: "Risiko Sedang" }, { left: ".zip", right: "Perlu Scan" }] },
+            // --- D. URAIAN / ESSAY ---
+            { id: 28, category: 'essay', type: 'essay', question: "Studi Kasus: Universitas menolak calon mahasiswa berprestasi karena jejak digital rasis di masa lalu. Analisislah mengapa 'Rekam Jejak Digital' kini dianggap sepenting prestasi akademik!", keywords: ["karakter", "reputasi", "integritas", "etika", "citra"], minKeywords: 2 },
+            { id: 29, category: 'essay', type: 'essay', question: "Analisis Privasi: Fitur 'Live Location' berguna untuk keamanan tapi melacak pola hidup. Jelaskan dilema 'Kenyamanan vs Privasi' ini dan cara bijak menggunakannya!", keywords: ["izin akses", "hanya saat digunakan", "matikan", "kesadaran"], minKeywords: 2 },
+            { id: 30, category: 'essay', type: 'essay', question: "Problem Solving: Kamu menemukan akun palsu (impersonation) menggunakan namamu untuk menipu. Rumuskan 3 langkah darurat yang efektif!", keywords: ["lapor", "report", "blokir", "klarifikasi", "screenshot"], minKeywords: 3 },
+            { id: 31, category: 'essay', type: 'essay', question: "Evaluasi: Bantahlah argumen 'Saya tidak punya rahasia jadi tidak takut diawasi' dengan menjelaskan bahaya 'Profiling Data' dari jejak pasif!", keywords: ["manipulasi", "target iklan", "pencurian identitas", "prediksi"], minKeywords: 2 },
+            { id: 32, category: 'essay', type: 'essay', question: "Analisis Hukum: Mengapa komentar penghinaan fisik 'iseng' bisa dipidana UU ITE? Jelaskan unsur yang dilanggar!", keywords: ["pencemaran", "ujaran kebencian", "sara", "pidana"], minKeywords: 2 },
+            { id: 33, category: 'essay', type: 'essay', question: "Keamanan Siber: Mengapa menggunakan tanggal lahir sebagai Password disebut 'Dosa Besar'? Hubungkan dengan Social Engineering!", keywords: ["data publik", "mudah ditebak", "lemah", "brute force"], minKeywords: 2 },
+            { id: 34, category: 'essay', type: 'essay', question: "Konsep Baru: Apa itu 'Digital Legacy' dan mengapa kita perlu mengatur akun kita jika kita meninggal dunia?", keywords: ["data pasca mati", "penyalahgunaan", "kenangan", "ahli waris", "memorialization", "akses"], minKeywords: 2 }
         ];
 
         // --- UTILS ---
@@ -301,7 +249,6 @@
 
         // --- COMPONENTS ---
         
-        // --- COMPONENT PELANGGARAN MODAL (DEFINED HERE) ---
         function ViolationModal({ onClose }) {
             return (
                 <div className="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4 animate-bounce-in">
@@ -309,7 +256,7 @@
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Icon path={Icons.Alert} className="w-8 h-8 text-red-600" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-800 mb-2">SESI UJIAN DIHENTIKAN</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">PELANGGARAN TERDETEKSI!</h2>
                         <p className="text-sm text-slate-600 mb-6">
                             Anda terdeteksi meninggalkan halaman ujian (pindah tab/minimize).
                             <br/><br/>
@@ -344,12 +291,10 @@
                             <h1 className="text-xl font-bold text-slate-800 uppercase tracking-tight">CBT Informatika</h1>
                             <p className="text-xs text-slate-500 mt-1">Computer Based Test</p>
                         </div>
-                        
                         <div className="bg-red-50 p-3 mx-4 mt-4 border border-red-200 rounded text-xs text-red-700 flex items-start gap-2">
                             <Icon path={Icons.Alert} className="w-5 h-5 shrink-0 mt-0.5"/>
-                            <span><strong>PERINGATAN:</strong> Pindah tab/minimize layar = RESET!</span>
+                            <span><strong>ANTI-CURANG:</strong> Pindah tab/minimize layar = RESET!</span>
                         </div>
-
                         <div className="p-6 space-y-4">
                             <div className="flex bg-slate-100 p-1 rounded mb-2">
                                 <button onClick={() => setIsAdmin(false)} className={`flex-1 py-1.5 text-xs font-bold rounded transition ${!isAdmin ? 'bg-white text-cbtBlue shadow-sm' : 'text-slate-500'}`}>SISWA</button>
@@ -389,7 +334,6 @@
         }
 
         function StudentDashboard({ user, onStart }) {
-            // Check previous violations
             const violationKey = `cbt_violation_${user.name}_${user.kelas}`;
             const previousViolations = parseInt(localStorage.getItem(violationKey) || '0');
 
@@ -414,7 +358,7 @@
                             {previousViolations > 0 && (
                                 <div className="bg-red-50 border border-red-200 p-3 rounded mb-4 text-xs text-red-800 flex items-center gap-2">
                                     <Icon path={Icons.Alert} className="w-4 h-4"/>
-                                    <span>Anda tercatat melakukan <strong>{previousViolations}x Reset (Interupsi)</strong> sebelumnya.</span>
+                                    <span>Anda tercatat melakukan <strong>{previousViolations}x Reset (Curang)</strong>.</span>
                                 </div>
                             )}
 
@@ -432,16 +376,7 @@
             const [selectedAnswer, setSelectedAnswer] = useState(null); 
             const [drawerOpen, setDrawerOpen] = useState(false);
             
-            // Safety Check
-            if (!questions || questions.length === 0 || !questions[currentIndex]) {
-                return (
-                    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-                        <div className="w-12 h-12 border-4 border-cbtBlue border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p className="text-slate-600 font-bold">Memuat Soal...</p>
-                        <button onClick={() => { localStorage.removeItem('cbt_active_exam'); window.location.reload(); }} className="mt-4 text-xs text-blue-500 hover:underline">Reset & Refresh</button>
-                    </div>
-                );
-            }
+            if (!questions || questions.length === 0 || !questions[currentIndex]) return <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">Memuat...</div>;
 
             const q = questions[currentIndex];
             const isLast = currentIndex === questions.length - 1;
@@ -485,15 +420,11 @@
                                         {q.category === 'essay' || q.category === 'mc' ? <div className="question-highlight">Perhatikan studi kasus berikut dengan saksama.</div> : null}
                                         {q.question}
                                     </div>
-                                    
-                                    {/* PG / BS */}
                                     {q.type === 'choice' && <div className="space-y-2">{q.options.map((opt, idx) => (
                                         <div key={idx} onClick={()=>setAnswers({...answers, [q.id]: idx})} className={`flex gap-3 p-3 rounded border cursor-pointer hover:bg-slate-50 ${answers[q.id]===idx?'bg-blue-50 border-cbtBlue ring-1 ring-cbtBlue':'bg-white'}`}>
                                             <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${answers[q.id]===idx?'bg-cbtBlue border-cbtBlue':'border-slate-400'}`}>{answers[q.id]===idx && <div className="w-2 h-2 bg-white rounded-full"></div>}</div><span className="option-text">{opt}</span>
                                         </div>
                                     ))}</div>}
-
-                                    {/* MATCH */}
                                     {q.type === 'complex_match' && <div className="space-y-4">
                                         <div className="grid gap-2">{q.pairs.map((pair, idx) => {
                                             const filled = answers[q.id]?.[idx];
@@ -507,8 +438,6 @@
                                             return <button key={i} disabled={used} onClick={()=>setSelectedAnswer(selectedAnswer===ans?null:ans)} className={`px-3 py-1.5 rounded border text-sm font-bold shadow-sm ${used?'bg-slate-200 text-slate-400 border-slate-200 cursor-not-allowed' : selectedAnswer===ans?'bg-cbtBlue text-white':'bg-white hover:border-blue-500'}`}>{ans}</button>
                                         })}</div></div>
                                     </div>}
-
-                                    {/* ESSAY */}
                                     {q.type === 'essay' && <textarea value={answers[q.id]||''} onChange={e=>setAnswers({...answers, [q.id]: e.target.value})} className="w-full h-48 p-3 border rounded focus:border-cbtBlue outline-none text-sm" placeholder="Tulis jawaban lengkap Anda di sini..."></textarea>}
                                 </div>
                                 <div className="p-3 border-t bg-slate-50 flex justify-between">
@@ -590,45 +519,165 @@
         function AdminPanel({ onLogout }) {
             const [data, setData] = useState([]);
             const [selectedData, setSelectedData] = useState(null);
+            const [filterClass, setFilterClass] = useState("ALL"); 
+            const [searchQuery, setSearchQuery] = useState(""); 
+            const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
 
             useEffect(() => {
-                if(supabaseClient) supabaseClient.from('exam_results').select('*').order('created_at', { ascending: false }).then(({ data }) => setData(data || []));
-                else setData(JSON.parse(localStorage.getItem('cbt_local_results') || '[]'));
+                const fetchData = async () => {
+                    let rawData = [];
+                    if(supabaseClient) {
+                        const { data, error } = await supabaseClient.from('exam_results').select('*');
+                        if (!error) rawData = data;
+                    } else {
+                        rawData = JSON.parse(localStorage.getItem('cbt_local_results') || '[]');
+                    }
+                    setData(rawData);
+                };
+                fetchData();
             }, []);
 
+            const deleteResult = async (id) => {
+                if(!confirm("Yakin ingin menghapus data ini?")) return;
+                if(supabaseClient) {
+                    await supabaseClient.from('exam_results').delete().eq('id', id);
+                    setData(prev => prev.filter(item => item.id !== id));
+                } else {
+                    const newData = data.filter(item => item.id !== id);
+                    localStorage.setItem('cbt_local_results', JSON.stringify(newData));
+                    setData(newData);
+                }
+            };
+
             const download = () => {
-                const ws = XLSX.utils.json_to_sheet(data);
+                const dataToDownload = filteredData; 
+                const wsData = dataToDownload.map(r => ({
+                    Tanggal: new Date(r.created_at || r.date).toLocaleString(),
+                    Nama: r.name,
+                    Kelas: r.kelas,
+                    Absen: r.absen,
+                    Nilai: r.score,
+                    Status: (r.detail?.violations > 0) ? `Curang (${r.detail.violations}x)` : "Aman",
+                    Reset_Count: r.detail?.violations || 0
+                }));
+                const ws = XLSX.utils.json_to_sheet(wsData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Nilai");
-                XLSX.writeFile(wb, "Rekap.xlsx");
+                XLSX.writeFile(wb, "Rekap_Nilai.xlsx");
             };
+
+            const handleSort = (key) => {
+                let direction = 'asc';
+                if (sortConfig.key === key && sortConfig.direction === 'asc') {
+                    direction = 'desc';
+                }
+                setSortConfig({ key, direction });
+            };
+            
+            // Filter and Sort Data
+            let filteredData = data.filter(item => {
+                const matchClass = filterClass === "ALL" || item.kelas === filterClass;
+                const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchClass && matchSearch;
+            });
+
+            filteredData.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+                
+                if (sortConfig.key === 'date') {
+                    aVal = new Date(a.created_at || a.date).getTime();
+                    bVal = new Date(b.created_at || b.date).getTime();
+                } else if (sortConfig.key === 'score' || sortConfig.key === 'absen') {
+                    aVal = Number(aVal);
+                    bVal = Number(bVal);
+                } else {
+                    aVal = (aVal || '').toString().toLowerCase();
+                    bVal = (bVal || '').toString().toLowerCase();
+                }
+
+                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const SortIcon = ({ direction }) => (
+                 direction === 'asc' ? <Icon path={Icons.ArrowUp} className="w-3 h-3 text-cbtBlue"/> : <Icon path={Icons.ArrowDown} className="w-3 h-3 text-cbtBlue"/>
+            );
 
             return (
                 <div className="min-h-screen bg-slate-100 p-4">
-                    <div className="max-w-6xl mx-auto bg-white rounded shadow-sm border border-slate-200">
-                        <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50">
+                    <div className="max-w-6xl mx-auto bg-white rounded shadow-sm border border-slate-200 flex flex-col h-[90vh]"> 
+                        <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 shrink-0 sticky top-0 z-20">
                             <div><h2 className="font-bold text-slate-700 text-lg">PANEL GURU</h2></div>
-                            <div className="flex gap-2"><button onClick={download} className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-bold hover:bg-green-700">EXCEL</button><button onClick={onLogout} className="px-3 py-1.5 bg-slate-700 text-white rounded text-xs font-bold hover:bg-slate-800">LOGOUT</button></div>
+                            <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+                                {/* Input Pencarian Nama */}
+                                <div className="relative w-full md:w-auto">
+                                    <span className="absolute left-3 top-2 text-slate-400">
+                                        <Icon path={Icons.Search} className="w-4 h-4" />
+                                    </span>
+                                    <input 
+                                        type="text" 
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Cari Nama..." 
+                                        className="pl-9 pr-3 py-1.5 border border-slate-300 rounded text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-cbtBlue w-full md:w-40"
+                                    />
+                                </div>
+
+                                <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="w-full md:w-auto px-3 py-1.5 border border-slate-300 rounded text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-cbtBlue">
+                                    <option value="ALL">SEMUA KELAS</option>
+                                    {['VIII-A','VIII-B','VIII-C','VIII-D','VIII-E','VIII-F','VIII-G','VIII-H'].map(k => <option key={k} value={k}>{k}</option>)}
+                                </select>
+                                <div className="flex gap-2 w-full md:w-auto">
+                                    <button onClick={download} className="flex-1 md:flex-none px-3 py-1.5 bg-green-600 text-white rounded text-xs font-bold hover:bg-green-700 text-center">EXCEL</button>
+                                    <button onClick={onLogout} className="flex-1 md:flex-none px-3 py-1.5 bg-slate-700 text-white rounded text-xs font-bold hover:bg-slate-800 text-center">LOGOUT</button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="overflow-x-auto"><table className="w-full text-sm text-left"><thead className="bg-slate-100 text-slate-600 border-b border-slate-200 font-bold"><tr><th className="p-3">Waktu</th><th className="p-3">Nama</th><th className="p-3">Kelas</th><th className="p-3">Nilai</th><th className="p-3">Status</th><th className="p-3 text-center">Aksi</th></tr></thead>
-                        <tbody className="divide-y divide-slate-100">{data.map((r,i)=> {
-                             const violations = r.detail?.violations || 0;
-                             return (
-                                <tr key={i} className="hover:bg-blue-50/50">
-                                    <td className="p-3 text-slate-500">{new Date(r.created_at||r.date).toLocaleString()}</td>
-                                    <td className="p-3 font-bold text-slate-800">{r.name}</td>
-                                    <td className="p-3">{r.kelas}</td>
-                                    <td className="p-3 font-bold text-cbtBlue">{r.score}</td>
-                                    <td className="p-3">
-                                        {violations > 0 ? 
-                                            <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold flex items-center w-fit gap-1"><Icon path={Icons.Alert} className="w-3 h-3"/> {violations}x Reset</span> 
-                                            : <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full border border-green-200 font-bold">Aman</span>
-                                        }
-                                    </td>
-                                    <td className="p-3 text-center"><button onClick={()=>setSelectedData(r)} className="text-cbtBlue hover:text-blue-800 flex items-center justify-center mx-auto gap-1 text-xs font-bold"><Icon path={Icons.Eye} className="w-4 h-4"/> Detail</button></td>
-                                </tr>
-                             )
-                        })}</tbody></table></div>
+                        <div className="flex-1 overflow-y-auto custom-scroll relative">
+                            <table className="w-full text-sm text-left border-collapse">
+                                <thead className="bg-slate-100 text-slate-600 border-b border-slate-200 font-bold sticky top-0 z-10 shadow-sm select-none">
+                                    <tr>
+                                        <th className="p-3 bg-slate-100 cursor-pointer hover:bg-slate-200" onClick={() => handleSort('date')}>
+                                            <div className="flex items-center gap-1">Waktu {sortConfig.key === 'date' && <SortIcon direction={sortConfig.direction} />}</div>
+                                        </th>
+                                        <th className="p-3 bg-slate-100 cursor-pointer hover:bg-slate-200" onClick={() => handleSort('name')}>
+                                            <div className="flex items-center gap-1">Nama {sortConfig.key === 'name' && <SortIcon direction={sortConfig.direction} />}</div>
+                                        </th>
+                                        <th className="p-3 bg-slate-100 cursor-pointer hover:bg-slate-200" onClick={() => handleSort('kelas')}>
+                                            <div className="flex items-center gap-1">Kelas {sortConfig.key === 'kelas' && <SortIcon direction={sortConfig.direction} />}</div>
+                                        </th>
+                                        <th className="p-3 bg-slate-100 cursor-pointer hover:bg-slate-200" onClick={() => handleSort('score')}>
+                                            <div className="flex items-center gap-1">Nilai {sortConfig.key === 'score' && <SortIcon direction={sortConfig.direction} />}</div>
+                                        </th>
+                                        <th className="p-3 bg-slate-100">Status</th>
+                                        <th className="p-3 text-center bg-slate-100">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {filteredData.length === 0 ? (
+                                        <tr><td colSpan="6" className="p-8 text-center text-slate-400 italic">Data tidak ditemukan.</td></tr>
+                                    ) : filteredData.map((r,i)=> {
+                                         const violations = r.detail?.violations || 0;
+                                         return (
+                                            <tr key={i} className="hover:bg-blue-50/50 transition-colors">
+                                                <td className="p-3 text-slate-500 whitespace-nowrap">{new Date(r.created_at||r.date).toLocaleString()}</td>
+                                                <td className="p-3 font-bold text-slate-800">{r.name}</td>
+                                                <td className="p-3">{r.kelas}</td>
+                                                <td className="p-3 font-bold text-cbtBlue">{r.score}</td>
+                                                <td className="p-3">{violations > 0 ? <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold flex items-center w-fit gap-1"><Icon path={Icons.Alert} className="w-3 h-3"/> {violations}x Reset</span> : <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full border border-green-200 font-bold">Aman</span>}</td>
+                                                <td className="p-3 text-center flex justify-center gap-2">
+                                                    <button onClick={()=>setSelectedData(r)} className="text-cbtBlue hover:text-blue-800 p-1 rounded hover:bg-blue-50"><Icon path={Icons.Eye} className="w-4 h-4"/></button>
+                                                    <button onClick={()=>deleteResult(r.id)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"><Icon path={Icons.X} className="w-4 h-4"/></button>
+                                                </td>
+                                            </tr>
+                                         )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-2 border-t border-slate-200 bg-slate-50 text-[10px] text-slate-400 text-center">Total Data: {filteredData.length} Siswa</div>
                     </div>
                     {selectedData && <ViewDetailModal data={selectedData} onClose={()=>setSelectedData(null)} />}
                 </div>
@@ -640,68 +689,43 @@
             const [state, setState] = useState({ view: 'login', user: null, questions: [], answers: {}, score: 0, timeLeft: 40*60, currentIndex: 0 });
             const [submitting, setSubmitting] = useState(false);
             const [loading, setLoading] = useState(true);
-            const [violationModal, setViolationModal] = useState(false); // New state for modal
+            const [violationModal, setViolationModal] = useState(false); 
 
-            // ANTI CHEAT: VISIBILITY CHANGE LISTENER
+            // ANTI CHEAT
             useEffect(() => {
                 const handleVisibilityChange = () => {
                     if (document.hidden && state.view === 'exam') {
-                        // 1. Catat Pelanggaran di LocalStorage (Persistent walau di-refresh)
                         const key = `cbt_violation_${state.user.name}_${state.user.kelas}`;
                         const currentCount = parseInt(localStorage.getItem(key) || '0');
                         localStorage.setItem(key, currentCount + 1);
-
-                        // Hapus sesi ujian yang sedang berjalan agar tidak bisa resume
                         localStorage.removeItem('cbt_active_exam');
-                        
-                        // Kembalikan ke Dashboard, reset soal, tampilkan Modal
-                        setState(p => ({ 
-                            ...p, 
-                            view: 'dashboard', 
-                            questions: [], 
-                            answers: {}, 
-                            timeLeft: 40*60, 
-                            currentIndex: 0 
-                        }));
+                        setState(p => ({ ...p, view: 'dashboard', questions: [], answers: {}, timeLeft: 40*60, currentIndex: 0 }));
                         setViolationModal(true);
                     }
                 };
-                
-                // Add event listener only if violationModal is not already shown to prevent loop/spam
-                if (!violationModal) {
-                    document.addEventListener('visibilitychange', handleVisibilityChange);
-                }
-                
+                if (!violationModal) document.addEventListener('visibilitychange', handleVisibilityChange);
                 return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
             }, [state.view, state.user, violationModal]);
 
-            // Load Session (Persistence for Refresh only)
+            // LOAD SESSION
             useEffect(() => {
                 const s = localStorage.getItem('cbt_active_exam');
                 if(s) { 
                     try { 
                         const parsed = JSON.parse(s);
-                        // If exam data exists and valid, restore it (allows refresh)
-                        if(parsed.view === 'exam' && parsed.questions && parsed.questions.length > 0) {
-                             setState(parsed); 
-                        } else if (parsed.user) {
-                             // If just user data but no active exam, go to dashboard
-                             setState(p => ({...p, user: parsed.user, view: parsed.user.role === 'admin' ? 'admin' : 'dashboard'}));
-                        }
+                        if(parsed.view === 'exam' && (!parsed.questions || parsed.questions.length === 0)) localStorage.removeItem('cbt_active_exam');
+                        else setState(parsed); 
                     } catch(e) { localStorage.removeItem('cbt_active_exam'); } 
                 }
                 setLoading(false);
             }, []);
 
-            // Save Session on Change (PERSISTENCE)
+            // SAVE SESSION
             useEffect(() => {
-                // Hanya simpan sesi jika user login DAN bukan karena violation reset
-                if(state.user && !violationModal) {
-                    localStorage.setItem('cbt_active_exam', JSON.stringify(state));
-                }
+                if(state.user && !violationModal) localStorage.setItem('cbt_active_exam', JSON.stringify(state));
             }, [state, violationModal]);
 
-            // Timer
+            // TIMER
             useEffect(() => {
                 if(state.view === 'exam' && state.timeLeft > 0) {
                     const t = setInterval(() => setState(p => ({...p, timeLeft: p.timeLeft - 1})), 1000);
@@ -713,18 +737,14 @@
                 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
                 const qMc = shuffle(INITIAL_QUESTIONS.filter(q => q.category === 'mc')).slice(0, 8);
                 const qBs = shuffle(INITIAL_QUESTIONS.filter(q => q.category === 'bs')).slice(0, 2);
-                const qMatch = shuffle(INITIAL_QUESTIONS.filter(q => q.category === 'match')).slice(0, 5).map(q => ({
-                    ...q, shuffledAnswers: shuffle(q.pairs.map(p => p.right))
-                }));
+                const qMatch = shuffle(INITIAL_QUESTIONS.filter(q => q.category === 'match')).slice(0, 5).map(q => ({...q, shuffledAnswers: shuffle(q.pairs.map(p => p.right))}));
                 const qEssay = shuffle(INITIAL_QUESTIONS.filter(q => q.category === 'essay')).slice(0, 7);
-                
                 setState(p => ({...p, view: 'exam', questions: [...qMc, ...qBs, ...qMatch, ...qEssay], answers: {}, timeLeft: 40*60, currentIndex: 0}));
             };
 
             const submit = async () => {
                 setSubmitting(true);
                 let score = 0;
-                
                 const report = state.questions.map(q => {
                     const ansIdx = state.answers[q.id];
                     let u="-", k="-", ok=false, pts=0;
@@ -743,25 +763,17 @@
                 });
 
                 const finalScore = Math.round((score / state.questions.length) * 100);
-                
-                // Ambil Jumlah Pelanggaran
                 const vKey = `cbt_violation_${state.user.name}_${state.user.kelas}`;
                 const violations = parseInt(localStorage.getItem(vKey) || '0');
-
-                // Format Detail Baru (Objek)
-                const finalDetail = {
-                    answers: report,
-                    violations: violations
-                };
+                const finalDetail = { answers: report, violations: violations };
                 
                 if(supabaseClient) await supabaseClient.from('exam_results').insert([{ name: state.user.name, kelas: state.user.kelas, absen: state.user.absen, score: finalScore, detail: finalDetail }]);
                 else {
                     const local = JSON.parse(localStorage.getItem('cbt_local_results')||'[]');
-                    local.push({ name: state.user.name, kelas: state.user.kelas, score: finalScore, date: new Date(), detail: finalDetail });
+                    local.push({ id: Date.now(), name: state.user.name, kelas: state.user.kelas, score: finalScore, date: new Date(), detail: finalDetail });
                     localStorage.setItem('cbt_local_results', JSON.stringify(local));
                 }
 
-                // Clear violation count after success submission
                 localStorage.removeItem(vKey);
                 localStorage.removeItem('cbt_active_exam');
                 setState(p => ({...p, view: 'result', score: finalScore}));
@@ -779,8 +791,6 @@
                     {state.view === 'exam' && <ExamInterface questions={state.questions} answers={state.answers} setAnswers={a => setState(p => ({...p, answers: a}))} timeLeft={state.timeLeft} currentIndex={state.currentIndex} setCurrentIndex={i => setState(p => ({...p, currentIndex: i}))} onSubmit={submit} isSubmitting={submitting} />}
                     {state.view === 'result' && <ResultScreen score={state.score} user={state.user} onHome={logout} />}
                     {state.view === 'admin' && <AdminPanel onLogout={logout} />}
-                    
-                    {/* MODAL PELANGGARAN */}
                     {violationModal && <ViolationModal onClose={() => setViolationModal(false)} />}
                 </>
             );
