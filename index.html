@@ -75,12 +75,12 @@
             LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
             Download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
             Eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+            Trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
             Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
             Loader: <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />,
-            SortAsc: <path d="M3 6h18M3 12h12M3 18h6" />, // Icon Sort A-Z (lines getting shorter) or generic arrow
+            Search: <><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></>,
             ArrowUp: <polyline points="18 15 12 9 6 15" />,
-            ArrowDown: <polyline points="6 9 12 15 18 9" />,
-            Sort: <><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></>
+            ArrowDown: <polyline points="6 9 12 15 18 9" />
         };
 
         // --- TOKEN SYSTEM ---
@@ -265,6 +265,28 @@
                         <button onClick={onClose} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-lg transition active:scale-95">
                             SAYA MENGERTI
                         </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- MODAL HAPUS DATA ---
+        function DeleteConfirmationModal({ isOpen, onClose, onConfirm, studentName }) {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Icon path={Icons.Trash} className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">Hapus Data?</h2>
+                        <p className="text-sm text-slate-600 mb-6">
+                            Apakah Anda yakin ingin menghapus data ujian siswa <strong>{studentName}</strong>? Tindakan ini tidak dapat dibatalkan.
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={onClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Batal</button>
+                            <button onClick={onConfirm} className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold shadow-lg transition">Hapus</button>
+                        </div>
                     </div>
                 </div>
             );
@@ -522,6 +544,8 @@
             const [filterClass, setFilterClass] = useState("ALL"); 
             const [searchQuery, setSearchQuery] = useState(""); 
             const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
+            const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+            const [itemToDelete, setItemToDelete] = useState(null);
 
             useEffect(() => {
                 const fetchData = async () => {
@@ -537,9 +561,22 @@
                 fetchData();
             }, []);
 
-            const deleteResult = async (id) => {
-                if(!confirm("Yakin ingin menghapus data ini?")) return;
-                if(supabaseClient) {
+            // === FUNGSI DELETE BARU DENGAN MODAL ===
+            const openDeleteModal = (item) => {
+                setItemToDelete(item);
+                setIsDeleteModalOpen(true);
+            };
+
+            const closeDeleteModal = () => {
+                setItemToDelete(null);
+                setIsDeleteModalOpen(false);
+            };
+
+            const executeDelete = async () => {
+                if (!itemToDelete) return;
+                const id = itemToDelete.id;
+
+                if (supabaseClient) {
                     await supabaseClient.from('exam_results').delete().eq('id', id);
                     setData(prev => prev.filter(item => item.id !== id));
                 } else {
@@ -547,6 +584,7 @@
                     localStorage.setItem('cbt_local_results', JSON.stringify(newData));
                     setData(newData);
                 }
+                closeDeleteModal();
             };
 
             const download = () => {
@@ -668,8 +706,8 @@
                                                 <td className="p-3 font-bold text-cbtBlue">{r.score}</td>
                                                 <td className="p-3">{violations > 0 ? <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold flex items-center w-fit gap-1"><Icon path={Icons.Alert} className="w-3 h-3"/> {violations}x Reset</span> : <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full border border-green-200 font-bold">Aman</span>}</td>
                                                 <td className="p-3 text-center flex justify-center gap-2">
-                                                    <button onClick={()=>setSelectedData(r)} className="text-cbtBlue hover:text-blue-800 p-1 rounded hover:bg-blue-50"><Icon path={Icons.Eye} className="w-4 h-4"/></button>
-                                                    <button onClick={()=>deleteResult(r.id)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"><Icon path={Icons.X} className="w-4 h-4"/></button>
+                                                    <button onClick={()=>setSelectedData(r)} className="text-cbtBlue hover:text-blue-800 p-1 rounded hover:bg-blue-50" title="Detail"><Icon path={Icons.Eye} className="w-4 h-4"/></button>
+                                                    <button onClick={()=>openDeleteModal(r)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50" title="Hapus"><Icon path={Icons.Trash} className="w-4 h-4"/></button>
                                                 </td>
                                             </tr>
                                          )
@@ -680,6 +718,12 @@
                         <div className="p-2 border-t border-slate-200 bg-slate-50 text-[10px] text-slate-400 text-center">Total Data: {filteredData.length} Siswa</div>
                     </div>
                     {selectedData && <ViewDetailModal data={selectedData} onClose={()=>setSelectedData(null)} />}
+                    <DeleteConfirmationModal 
+                        isOpen={isDeleteModalOpen} 
+                        onClose={closeDeleteModal} 
+                        onConfirm={executeDelete} 
+                        studentName={itemToDelete?.name} 
+                    />
                 </div>
             );
         }
